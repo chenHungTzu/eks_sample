@@ -1,36 +1,50 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  namespace : "kube-system"
-  name: web-server
+  name: example
   labels:
-    app: web-server
+    app: example
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: web-server
-  template:
-    metadata:
-      labels:
-        app: web-server
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:latest
-        ports:
-        - containerPort: 80
+  containers:
+  - name: redis
+    image: redis:alpine
+    ports:
+    - containerPort: 6379
+  - name: localstack
+    image: localstack/localstack
+    env :
+    - name: LAMBDA_LIMITS_CODE_SIZE_ZIPPED
+      value: "104857600"
+    - name: LAMBDA_LIMITS_CREATE_FUNCTION_REQUEST_SIZE
+      value: "125829120"
+    ports:
+    - containerPort: 4566
+  - name: mongo
+    image: mongo:5.0
+    command: ["/usr/bin/mongod"]
+    args: ["--bind_ip_all", "--replSet", "mongo-replica-set"]
+    ports:
+    - containerPort: 27017
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  namespace : "kube-system"
-  name: web-server-service
+  name: example
 spec:
-  type: LoadBalancer
-  ports:
-  - port: 80
-    targetPort: 80
-    protocol: TCP
   selector:
-    app: web-server
+    app: example
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+      name : redis
+    - protocol: TCP
+      port: 4566
+      targetPort: 4566
+      name : localstack
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+      name : mongodb
+  type: LoadBalancer

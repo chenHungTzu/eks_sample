@@ -59,7 +59,6 @@ resource "aws_eks_cluster" "example" {
   depends_on = [
     aws_iam_role_policy_attachment.example-AmazonEKSClusterPolicy,
     aws_iam_role_policy_attachment.example-AmazonEKSServicePolicy,
-    aws_cloudwatch_log_group.example
   ]
 
    
@@ -98,11 +97,7 @@ resource "aws_iam_role_policy_attachment" "example-AmazonEKSVPCResourceControlle
   role       = aws_iam_role.example.name
 }
 
-resource "aws_cloudwatch_log_group" "example" {
-  name              = "/aws/eks/my-cluster/cluster"
-  retention_in_days = 7
 
-}
 
 
 resource "aws_iam_role" "eks_node_group_role" {
